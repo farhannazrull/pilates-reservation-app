@@ -359,8 +359,12 @@ export default function BookingPage() {
           email: email
         })
       });
-      if (res.ok) setStep(5);
-      else alert("Booking failed. The slot might have been taken.");
+      if (res.ok) {
+        setStep(5);
+      } else {
+        const errorData = await res.json();
+        alert(`Booking Error: ${errorData.details || errorData.error || 'Unknown error'}`);
+      }
     } catch (error) {
       console.error("Booking error:", error);
       alert("Error processing booking.");
