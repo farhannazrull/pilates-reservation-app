@@ -12,9 +12,17 @@ export async function GET(request: Request) {
   }
 
   try {
+    console.log("Fetching data from Supabase for date:", date);
+    
     const courts = await sql`SELECT * FROM courts`;
     const timeSlots = await sql`SELECT * FROM time_slots`;
-    const reservations = await sql<{ court_id: string, time_slot_id: string }[]>`SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}`;
+    
+    console.log("Found courts:", courts.length);
+    console.log("Found timeSlots:", timeSlots.length);
+
+    const reservations = await sql<{ court_id: string, time_slot_id: string }[]>`
+      SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}
+    `;
 
     const bookedSlots = reservations.map(r => `${r.court_id}_${r.time_slot_id}`);
 
@@ -23,8 +31,8 @@ export async function GET(request: Request) {
       timeSlots,
       bookedSlots,
     });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error("DATABASE ERROR:", error.message);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
