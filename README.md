@@ -7,7 +7,7 @@ A complete Pilates Studio Booking System.
 - **/backend**: (Legacy) The original Go backend. The production version now uses Next.js API Routes for easier serverless deployment.
 
 ## Quick Links
-- **Live Demo**: [https://pilates-reservation-app.vercel.app](https://pilates-reservation-app.vercel.app)
+- **Live Demo**: [https://pilates-reservation-app-qy7v.vercel.app/](https://pilates-reservation-app-qy7v.vercel.app/)
 - **Database**: Powered by Supabase
 
 ## Setup
