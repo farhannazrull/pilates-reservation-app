@@ -166,7 +166,9 @@ export default function BookingPage() {
     if (!fullCardRef.current) return;
     const observer = new ResizeObserver((entries) => {
       for (let entry of entries) {
-        setCardHeight(entry.target.offsetHeight);
+        if (entry.target instanceof HTMLElement) {
+          setCardHeight(entry.target.offsetHeight);
+        }
       }
     });
     observer.observe(fullCardRef.current);
@@ -314,7 +316,7 @@ export default function BookingPage() {
     if (date) {
       setLoading(true);
       const dateStr = format(date, 'yyyy-MM-dd');
-      fetch(`https://larithmic-sina-nondigestible.ngrok-free.dev/api/availability?date=${dateStr}`, { headers: { 'ngrok-skip-browser-warning': 'true' } })
+      fetch(`/api/availability?date=${dateStr}`)
         .then(res => res.json())
         .then(data => {
           setAvailability(data);
@@ -344,11 +346,10 @@ export default function BookingPage() {
     if (!date || !timeSlot || !court || !name || !email) return;
     setBookingLoading(true);
     try {
-      const res = await fetch('https://larithmic-sina-nondigestible.ngrok-free.dev/api/reservations', {
+      const res = await fetch('/api/reservations', {
         method: 'POST',
         headers: { 
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true'
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           date: format(date, 'yyyy-MM-dd'),
@@ -445,7 +446,7 @@ export default function BookingPage() {
                <button 
                   onClick={() => {
                       if(confirm('Reset all bookings?')) {
-                          fetch('https://easy-clubs-agree.loca.lt/api/reset', { method: 'POST' })
+                          fetch('/api/reset', { method: 'POST' })
                             .then(() => window.location.reload());
                       }
                   }}
@@ -522,7 +523,7 @@ export default function BookingPage() {
                    <button 
                       onClick={() => {
                           if(confirm('Reset all bookings?')) {
-                              fetch('https://larithmic-sina-nondigestible.ngrok-free.dev/api/reset', { method: 'POST', headers: { 'ngrok-skip-browser-warning': 'true' } })
+                              fetch('/api/reset', { method: 'POST' })
                                 .then(() => window.location.reload());
                           }
                       }}

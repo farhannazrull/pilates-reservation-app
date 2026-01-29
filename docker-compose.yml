@@ -19,7 +19,7 @@ services:
       - "8080:8080"
     restart: always
     environment:
-      - DATABASE_URL=postgres://user:password@db:5432/pilates_db?sslmode=disable
+      - DATABASE_URL=postgresql://postgres:!@nPHWXzVTZ%D5f@db.tytplffbylkyphrkpcud.supabase.co:5432/postgres
     depends_on:
       - db
 
