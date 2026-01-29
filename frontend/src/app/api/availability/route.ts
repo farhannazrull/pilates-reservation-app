@@ -12,14 +12,13 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log("Fetching data from Supabase for date:", date);
-    
+    // Debug: Cek apakah env var terbaca (tanpa membocorkan password)
+    if (!process.env.DATABASE_URL) {
+      return NextResponse.json({ error: 'DATABASE_URL is missing in Vercel settings' }, { status: 500 });
+    }
+
     const courts = await sql`SELECT * FROM courts`;
     const timeSlots = await sql`SELECT * FROM time_slots`;
-    
-    console.log("Found courts:", courts.length);
-    console.log("Found timeSlots:", timeSlots.length);
-
     const reservations = await sql<{ court_id: string, time_slot_id: string }[]>`
       SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}
     `;
@@ -32,7 +31,11 @@ export async function GET(request: Request) {
       bookedSlots,
     });
   } catch (error: any) {
-    console.error("DATABASE ERROR:", error.message);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    // Menampilkan detail error asli dari Postgres/Supabase
+    return NextResponse.json({ 
+      error: 'Database Connection Error', 
+      details: error.message,
+      hint: error.hint 
+    }, { status: 500 });
   }
 }
