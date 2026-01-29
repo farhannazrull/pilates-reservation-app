@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
 import sql from '@/lib/db';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { date, timeSlotId, courtId, userName, email } = body;
-
-  if (!date || !timeSlotId || !courtId) {
-    return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-  }
-
   try {
+    const body = await request.json();
+    const { date, timeSlotId, courtId, userName, email } = body;
+
+    if (!date || !timeSlotId || !courtId) {
+      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
+    }
+
     // Check if already booked
     const existing = await sql`
       SELECT id FROM reservations 

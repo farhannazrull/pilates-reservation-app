@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     const courts = await sql`SELECT * FROM courts`;
     const timeSlots = await sql`SELECT * FROM time_slots`;
-    const reservations = await sql`SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}`;
+    const reservations = await sql<{ court_id: string, time_slot_id: string }[]>`SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}`;
 
     const bookedSlots = reservations.map(r => `${r.court_id}_${r.time_slot_id}`);
 
