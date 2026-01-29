@@ -1,19 +1,11 @@
 import postgres from 'postgres';
 
-// Gunakan fungsi untuk koneksi agar tidak dijalankan saat proses build Vercel
-const getSql = () => {
-  const connectionString = process.env.DATABASE_URL;
-  
-  if (!connectionString) {
-    // Return fungsi kosong atau dummy saat build
-    return ((() => {}) as any);
-  }
+const connectionString = process.env.DATABASE_URL || '';
 
-  return postgres(connectionString, {
-    ssl: 'require',
-    connect_timeout: 10,
-  });
-};
+const sql = postgres(connectionString, {
+  ssl: 'require',
+  connect_timeout: 10,
+  max: 1, // Batasi koneksi agar tidak kena limit Supabase Free
+});
 
-const sql = getSql();
 export default sql;

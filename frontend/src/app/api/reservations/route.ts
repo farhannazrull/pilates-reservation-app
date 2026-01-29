@@ -36,8 +36,11 @@ export async function POST(request: Request) {
       message: 'Reservation successful!',
       reference,
     });
-  } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  } catch (error: any) {
+    console.error("BOOKING API ERROR:", error.message);
+    return NextResponse.json({ 
+      error: 'Database Error', 
+      details: error.message 
+    }, { status: 500 });
   }
 }
