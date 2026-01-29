@@ -1,11 +1,15 @@
 import postgres from 'postgres';
 
-const connectionString = process.env.DATABASE_URL || '';
+// Fungsi untuk membersihkan string URL dari spasi atau karakter aneh
+const getConnectionString = () => {
+  const url = process.env.DATABASE_URL || '';
+  return url.trim();
+};
 
-const sql = postgres(connectionString, {
+const sql = postgres(getConnectionString(), {
   ssl: 'require',
   connect_timeout: 10,
-  max: 1, // Batasi koneksi agar tidak kena limit Supabase Free
+  prepare: false, // Penting untuk koneksi lewat Pooler (PGBouncer)
 });
 
 export default sql;
