@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
-import sql from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
-// Jadwal tetap, tidak perlu ambil dari database lagi
 const COURTS = [
   { id: 'c1', name: 'Reformer Studio A' },
   { id: 'c2', name: 'Reformer Studio B' },
@@ -23,17 +22,17 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const date = searchParams.get('date');
 
-  if (!date) {
-    return NextResponse.json({ error: 'Date is required' }, { status: 400 });
-  }
+  if (!date) return NextResponse.json({ error: 'Date is required' }, { status: 400 });
 
   try {
-    // Database cuma buat ngecek mana yang sudah dibooking
-    const reservations = await sql`
-      SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}
-    `;
+    const { data: reservations, error } = await supabase
+      .from('reservations')
+      .select('court_id, time_slot_id')
+      .eq('date', date);
 
-    const bookedSlots = reservations.map((r: any) => `${r.court_id}_${r.time_slot_id}`);
+    if (error) throw error;
+
+    const bookedSlots = reservations.map(r => `${r.court_id}_${r.time_slot_id}`);
 
     return NextResponse.json({
       courts: COURTS,
@@ -42,12 +41,11 @@ export async function GET(request: Request) {
     });
   } catch (error: any) {
     console.error(error);
-    // Jika database error, kita tetap kirim jam & studio tapi anggap semua kosong
-    return NextResponse.json({
-      courts: COURTS,
-      timeSlots: TIME_SLOTS,
+    return NextResponse.json({ 
+      courts: COURTS, 
+      timeSlots: TIME_SLOTS, 
       bookedSlots: [],
-      db_error: error.message
+      db_error: error.message 
     });
   }
 }

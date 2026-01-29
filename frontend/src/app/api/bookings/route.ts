@@ -1,25 +1,31 @@
 import { NextResponse } from 'next/server';
-import sql from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const results = await sql`
-      SELECT 
-        r.date, 
-        ts.start_time || ' - ' || ts.end_time as time, 
-        c.name as studio, 
-        r.user_name as "userName"
-      FROM reservations r
-      LEFT JOIN time_slots ts ON ts.id = r.time_slot_id
-      LEFT JOIN courts c ON c.id = r.court_id
-      ORDER BY r.date DESC
-    `;
+    const { data, error } = await supabase
+      .from('reservations')
+      .select(`
+        date,
+        user_name,
+        time_slots (start_time, end_time),
+        courts (name)
+      `)
+      .order('date', { ascending: false });
+
+    if (error) throw error;
+
+    const results = data.map((r: any) => ({
+      date: r.date,
+      time: `${r.time_slots?.start_time} - ${r.time_slots?.end_time}`,
+      studio: r.courts?.name,
+      userName: r.user_name
+    }));
 
     return NextResponse.json(results);
   } catch (error: any) {
-    console.error(error);
-    return NextResponse.json({ error: 'Database Error' }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

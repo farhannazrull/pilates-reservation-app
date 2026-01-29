@@ -1,46 +1,43 @@
 import { NextResponse } from 'next/server';
-import sql from '@/lib/db';
+import { supabase } from '@/lib/supabase';
 
 export const dynamic = 'force-dynamic';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { date, timeSlotId, courtId, userName, email } = body;
-
-    if (!date || !timeSlotId || !courtId) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 });
-    }
+    const { date, timeSlotId, courtId, userName, email } = await request.json();
 
     // Check if already booked
-    const existing = await sql`
-      SELECT id FROM reservations 
-      WHERE date = ${date} AND time_slot_id = ${timeSlotId} AND court_id = ${courtId}
-    `;
+    const { data: existing } = await supabase
+      .from('reservations')
+      .select('id')
+      .match({ date, time_slot_id: timeSlotId, court_id: courtId })
+      .single();
 
-    if (existing.length > 0) {
+    if (existing) {
       return NextResponse.json({ error: 'Slot already booked' }, { status: 409 });
     }
 
     const id = `res-${Date.now()}`;
     const reference = `PAY-${Math.floor(Date.now() / 1000)}`;
 
-    await sql`
-      INSERT INTO reservations (id, date, time_slot_id, court_id, user_name, email, status, reference, created_at)
-      VALUES (${id}, ${date}, ${timeSlotId}, ${courtId}, ${userName}, ${email}, 'confirmed', ${reference}, NOW())
-    `;
+    const { error } = await supabase
+      .from('reservations')
+      .insert({
+        id,
+        date,
+        time_slot_id: timeSlotId,
+        court_id: courtId,
+        user_name: userName,
+        email,
+        status: 'confirmed',
+        reference
+      });
 
-    return NextResponse.json({
-      id,
-      status: 'confirmed',
-      message: 'Reservation successful!',
-      reference,
-    });
+    if (error) throw error;
+
+    return NextResponse.json({ id, status: 'confirmed', reference });
   } catch (error: any) {
-    console.error("BOOKING API ERROR:", error.message);
-    return NextResponse.json({ 
-      error: 'Database Error', 
-      details: error.message 
-    }, { status: 500 });
+    return NextResponse.json({ error: 'Database Error', details: error.message }, { status: 500 });
   }
 }
