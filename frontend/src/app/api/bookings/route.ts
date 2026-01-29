@@ -18,8 +18,8 @@ export async function GET() {
     `;
 
     return NextResponse.json(results);
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Database Error' }, { status: 500 });
   }
 }

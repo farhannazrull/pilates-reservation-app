@@ -1,13 +1,7 @@
 import postgres from 'postgres';
 
-const connectionString = process.env.DATABASE_URL || '';
-
-// Gunakan singleton agar tidak terlalu banyak koneksi ke Supabase
-const sql = postgres(connectionString, {
+const sql = postgres(process.env.DATABASE_URL || '', {
   ssl: 'require',
-  connect_timeout: 10,
-  max: 10, // Maksimal koneksi
-  idle_timeout: 20,
 });
 
 export default sql;

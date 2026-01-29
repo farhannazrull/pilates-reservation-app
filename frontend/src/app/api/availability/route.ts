@@ -12,18 +12,11 @@ export async function GET(request: Request) {
   }
 
   try {
-    // Debug: Cek apakah env var terbaca (tanpa membocorkan password)
-    if (!process.env.DATABASE_URL) {
-      return NextResponse.json({ error: 'DATABASE_URL is missing in Vercel settings' }, { status: 500 });
-    }
+    const courts = await sql`SELECT id, name FROM courts`;
+    const timeSlots = await sql`SELECT id, start_time as "startTime", end_time as "endTime" FROM time_slots`;
+    const reservations = await sql`SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}`;
 
-    const courts = await sql`SELECT * FROM courts`;
-    const timeSlots = await sql`SELECT * FROM time_slots`;
-    const reservations = await sql<{ court_id: string, time_slot_id: string }[]>`
-      SELECT court_id, time_slot_id FROM reservations WHERE date = ${date}
-    `;
-
-    const bookedSlots = reservations.map(r => `${r.court_id}_${r.time_slot_id}`);
+    const bookedSlots = reservations.map((r: any) => `${r.court_id}_${r.time_slot_id}`);
 
     return NextResponse.json({
       courts,
@@ -31,11 +24,7 @@ export async function GET(request: Request) {
       bookedSlots,
     });
   } catch (error: any) {
-    // Menampilkan detail error asli dari Postgres/Supabase
-    return NextResponse.json({ 
-      error: 'Database Connection Error', 
-      details: error.message,
-      hint: error.hint 
-    }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: 'Database Error', details: error.message }, { status: 500 });
   }
 }
